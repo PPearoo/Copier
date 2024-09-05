@@ -5,7 +5,7 @@ I might add other things to copy as well (roles, channel overwrites, etc.) but f
 
 ## Usage
 1. Create a bot on the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Invite the bot to your server. It needs the `bot` scope and either `Manage Channels` or `Administrator` permissions. `Manage Channels` will not allow the bot to see channels it doesn't have access to, so `Administrator` is recommended.
+2. Invite the bot to your server. It needs the `bot` scope and either `Manage Channels` or `Administrator` permission. `Manage Channels` will not allow the bot to see channels it doesn't have access to, so `Administrator` is recommended.
 3. Reset and copy the bot's token.
 4. Clone the repository.
 5. Replace `<token-here>` with the bot's token in the `.env` file.
@@ -16,12 +16,9 @@ The code is under The Unlicense license, feel free to do anything you want with 
 
 ### Prefix: 'copy ' or mention!
 - `copy category [roles] [new_name]` Clones the current category and all its channels.
-    
-    `roles` - Optional. A list of roles to give access to the new category. Seperate them with spaces.
-    
-    `new_name` - Optional. The name of the new category.
-    
-    -# Note: The category will be private if you specify any roles, but visually, the switch for 'private category' will be off. This is a discord limitation, but the category will still be private.`
+    - `roles` - Optional. A list of roles to give access to the new category. Seperate them with spaces.
+    - `new_name` - Optional. The name of the new category.
+    - _Note: The category will be private if you specify any roles, but visually, the switch for 'private category' will be off. This is a discord limitation, but the category will still be private.`_
 
 - `copy delete` Deletes the category that the command is used in, and all its channels.
 
