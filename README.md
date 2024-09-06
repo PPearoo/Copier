@@ -1,7 +1,5 @@
 # Copier
-A bot that lets you copy categories, just like how you can copy channels in Discord.
-
-I might add other things to copy as well (roles, channel overwrites, etc.) but for now it's just categories.
+A bot that lets you copy things, just like how you can copy channels in Discord.
 
 ## Usage
 1. Create a bot on the [Discord Developer Portal](https://discord.com/developers/applications).
