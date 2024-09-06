@@ -1,4 +1,4 @@
-# CopyCategory
+# Copier
 A bot that lets you copy categories, just like how you can copy channels in Discord.
 
 I might add other things to copy as well (roles, channel overwrites, etc.) but for now it's just categories.
@@ -14,12 +14,5 @@ I might add other things to copy as well (roles, channel overwrites, etc.) but f
 
 The code is under The Unlicense license, feel free to do anything you want with it.
 
-### Prefix: 'copy ' or mention!
-- `copy category [roles] [new_name]` Clones the current category and all its channels.
-    - `roles` - Optional. A list of roles to give access to the new category. Seperate them with spaces.
-    - `new_name` - Optional. The name of the new category.
-    - _Note: The category will be private if you specify any roles, but visually, the switch for 'private category' will be off. This is a discord limitation, but the category will still be private.`_
-
-- `copy delete` Deletes the category that the command is used in, and all its channels.
-
-- `copy nuke` Deletes the current channel and clones it.
+### Prefix: 'copier ' or mention!
+Use `copier help` to view every category & their commands.
