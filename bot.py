@@ -136,6 +136,18 @@ async def category_nuke(ctx: commands.Context):
     """A shorthand for deleting and cloning a category."""
     await ctx.invoke(category_clone)
     await ctx.invoke(category_delete)
+
+@commands.has_permissions(manage_channels=True)
+@category.command(name="clear")
+async def category_clear(ctx: commands.Context):
+    """Deletes all channels in the category that the command is used in."""
+    category: discord.CategoryChannel = ctx.channel.category
+    if category is None:
+        return await ctx.send("This channel is not in a category")
+    
+    for i in category.channels:
+        await i.delete(reason=f"Delete {category.name} - {ctx.author.id}")
+    await ctx.send(f"Channels in `{category.name}` deleted.")
     
 @bot.group(name="channel")
 async def channel(ctx: commands.Context):
