@@ -14,6 +14,7 @@ class Help(commands.HelpCommand):
         ctx = self.context
         embed = discord.Embed(
             title="Help",
+            url="https://github.com/rnxm/copier",
             description="Use `copier help [command]` for more information on a command.",
             color=discord.Color.blurple()
         )
@@ -32,6 +33,7 @@ class Help(commands.HelpCommand):
         ctx = self.context
         embed = discord.Embed(
             title=group.name.capitalize(),
+            url="https://github.com/rnxm/copier",
             description=group.help,
             color=discord.Color.blurple()
         )
@@ -49,6 +51,7 @@ class Help(commands.HelpCommand):
         ctx = self.context
         embed = discord.Embed(
             title=command.usage if command.usage else ctx.prefix + command.qualified_name,
+            url="https://github.com/rnxm/copier",
             description=command.help,
             color=discord.Color.blurple()
         )
@@ -316,7 +319,6 @@ if platform.system() == "Windows":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 else:
     import uvloop
-    uvloop.install()
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 bot.run(os.getenv("TOKEN"))
