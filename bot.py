@@ -165,6 +165,7 @@ async def category_clear(ctx: commands.Context):
         await i.delete(reason=f"Delete {category.name} - {ctx.author.id}")
     await ctx.send(f"Channels in `{category.name}` deleted.")
     
+@commands.guild_only()
 @bot.group(name="channel")
 async def channel(ctx: commands.Context):
     """Utilities for channels."""
@@ -223,6 +224,7 @@ async def channel_nuke(ctx: commands.Context):
     await ctx.invoke(channel_clone)
     await ctx.invoke(channel_delete)
 
+@commands.guild_only()
 @bot.group(name="role")
 async def role(ctx: commands.Context):
     """Utilities for roles. Because Discord is too lazy to add a clone feature to them."""
