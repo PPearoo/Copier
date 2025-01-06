@@ -234,7 +234,7 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
     if role.is_default():
         return await ctx.send("You cannot copy the everyone role.")
     if role.is_premium_subscriber():
-        return await ctx.send("You cannot copy the premium subscriber role.")
+        return await ctx.send("You cannot copy the booster role.")
     
     if new_color and not new_color.startswith("#"):
         new_name = new_color + " " + new_name if new_name else new_color if new_color else None
@@ -266,7 +266,7 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
     await ctx.send(f"Role `{new_role.name}` created. {extras}\n{new_role.mention}")
 
 @commands.has_permissions(manage_roles=True)
-@role.command(name="delete")
+@role.command(name="delete", usage="role delete [role]")
 async def role_delete(ctx: commands.Context, role: discord.Role):
     """Deletes a role.
     
@@ -285,7 +285,7 @@ async def role_delete(ctx: commands.Context, role: discord.Role):
     await ctx.send(f"Role `{role.name}` deleted.")
 
 @commands.has_permissions(manage_roles=True)
-@role.command(name="nuke")
+@role.command(name="nuke", usage="role nuke [role]")
 async def role_nuke(ctx: commands.Context, role: discord.Role):
     """Nukes a role by cloning it and deleting the original. This should be used if you want to remove a role from everyone.
     
