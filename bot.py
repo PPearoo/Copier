@@ -3,6 +3,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 import asyncio
+import platform
 
 load_dotenv()
 
@@ -294,5 +295,11 @@ async def role_nuke(ctx: commands.Context, role: discord.Role):
     await ctx.invoke(role_delete, role)
 
 bot.help_command = Help()
+if platform.system() == "Windows":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import uvloop
+    uvloop.install()
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 bot.run(os.getenv("TOKEN"))
