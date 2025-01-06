@@ -57,9 +57,22 @@ class Help(commands.HelpCommand):
         )
         await ctx.send(embed=embed)
 
+async def update_status(bot: commands.Bot):
+    print(f"Updating status to {len(bot.guilds)} servers")
+    await bot.change_presence(activity=discord.CustomActivity(name=f"{len(bot.guilds)} servers"), status=discord.Status.online)
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} with {len(bot.commands)} commands.")
+    await update_status(bot)
+
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    await update_status(bot)
+
+@bot.event
+async def on_guild_remove(guild: discord.Guild):
+    await update_status(bot)
 
 @bot.before_invoke
 async def before_invoke(ctx: commands.Context):
