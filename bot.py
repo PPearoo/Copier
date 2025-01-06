@@ -15,7 +15,7 @@ class Help(commands.HelpCommand):
         embed = discord.Embed(
             title="Help",
             url="https://github.com/rnxm/copier",
-            description="Use `copier help [command]` for more information on a command.",
+            description=f"Use `{ctx.clean_prefix} help [command]` for more information on a command.",
             color=discord.Color.blurple()
         )
         for cog, commands in mapping.items():
@@ -23,7 +23,7 @@ class Help(commands.HelpCommand):
                 if command.hidden:
                     continue
                 embed.add_field(
-                    name=ctx.prefix + command.qualified_name,
+                    name=ctx.clean_prefix + command.qualified_name,
                     value=command.short_doc,
                     inline=False
                 )
@@ -41,7 +41,7 @@ class Help(commands.HelpCommand):
             if command.hidden:
                 continue
             embed.add_field(
-                name=ctx.prefix + (command.usage if command.usage else command.qualified_name),
+                name=ctx.clean_prefix + (command.usage or command.qualified_name),
                 value=command.short_doc,
                 inline=False
             )
@@ -50,7 +50,7 @@ class Help(commands.HelpCommand):
     async def send_command_help(self, command: commands.Command):
         ctx = self.context
         embed = discord.Embed(
-            title=command.usage if command.usage else ctx.prefix + command.qualified_name,
+            title=command.usage or ctx.clean_prefix + command.qualified_name,
             url="https://github.com/rnxm/copier",
             description=command.help,
             color=discord.Color.blurple()
@@ -89,7 +89,7 @@ async def after_invoke(ctx: commands.Context):
     except discord.HTTPException:
         pass
 
-@bot.group(name="category")
+@bot.group(name="category", invoke_without_command=True)
 async def category(ctx: commands.Context):
     """Utilities for categories. Because Discord is too lazy to add a clone feature."""
     if ctx.invoked_subcommand is None:
@@ -182,7 +182,7 @@ async def category_clear(ctx: commands.Context):
     await ctx.send(f"Channels in `{category.name}` deleted.")
     
 @commands.guild_only()
-@bot.group(name="channel")
+@bot.group(name="channel", invoke_without_command=True)
 async def channel(ctx: commands.Context):
     """Utilities for channels."""
     if ctx.invoked_subcommand is None:
@@ -241,18 +241,18 @@ async def channel_nuke(ctx: commands.Context):
     await ctx.invoke(channel_delete)
 
 @commands.guild_only()
-@bot.group(name="role")
+@bot.group(name="role", invoke_without_command=True)
 async def role(ctx: commands.Context):
     """Utilities for roles. Because Discord is too lazy to add a clone feature to them."""
     if ctx.invoked_subcommand is None:
         await ctx.send_help("role")
 
 @commands.has_permissions(manage_roles=True)
-@role.command(usage="role clone [role] [new_color] [new_name]", aliases=["copy"])
+@role.command(name="clone", usage="role clone [role] [new_color] [new_name]", aliases=["copy"])
 async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str = None, *, new_name: str = None):
     """Clones a role.
     
-    `role` - The role to clone. Can be a role ID.
+    `role` - The role to clone.
     
     `new_color` - Optional. The color of the new role. Must be a hex code and must start with a `#`.
     
@@ -260,15 +260,6 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
     
     **Aliases:** `copy`, `clone`
     """
-    try:
-        role = await commands.RoleConverter().convert(ctx, str(role))
-    except commands.BadArgument:
-        return await ctx.send("Role not found.")
-    if role.is_default():
-        return await ctx.send("You cannot copy the everyone role.")
-    if role.is_premium_subscriber():
-        return await ctx.send("You cannot copy the booster role.")
-    
     if new_color and not new_color.startswith("#"):
         new_name = new_color + " " + new_name if new_name else new_color if new_color else None
         new_color = None
@@ -276,10 +267,9 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
         new_color = None
     elif new_color and new_color.startswith("#"):
         try:
-            new_color = discord.Color.from_str(new_color)
-        except ValueError:
-            return await ctx.send("Invalid color. Must be a hex code.")
-    print(new_color, new_name, role.color)
+            new_color = commands.ColorConverter().convert(ctx, new_color)
+        except commands.BadArgument:
+            return await ctx.send("Invalid color. Must be a hex code and must start with a `#`.")
     new_role = await ctx.guild.create_role(
         name=new_name or role.name,
         color=new_color or role.color,
@@ -289,12 +279,15 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
         reason=f"Copy {role.name} - {ctx.author.id}"
     )
     extras = ""
-    bot_profile = await ctx.guild.fetch_member(bot.user.id)
-    if role.position < bot_profile.top_role.position:
-        new_role = await new_role.edit(position=role.position - 1)
+    if role.position < ctx.me.top_role.position:
+        new_role = await new_role.edit(
+            position=role.position - 1 if role.position > 1 else 1
+        )
     else:
         extras = "I couldn't move it below the existing role, though, because it is above my top role. You can find it below my top role."
-        new_role = await new_role.edit(position=bot_profile.top_role.position - 1)
+        new_role = await new_role.edit(
+            position=ctx.me.top_role.position - 1 if ctx.me.top_role.position > 1 else 1
+        )
     
     await ctx.send(f"Role `{new_role.name}` created. {extras}\n{new_role.mention}")
 
@@ -303,7 +296,7 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
 async def role_delete(ctx: commands.Context, role: discord.Role):
     """Deletes a role.
     
-    `role` - The role to delete. Can be a role ID.
+    `role` - The role to delete.
     """
     try:
         role = await commands.RoleConverter().convert(ctx, str(role))
@@ -313,6 +306,8 @@ async def role_delete(ctx: commands.Context, role: discord.Role):
         return await ctx.send("You cannot delete the everyone role.")
     if role.is_premium_subscriber():
         return await ctx.send("You cannot delete the premium subscriber role.")
+    if role.managed or role.is_bot_managed():
+        return await ctx.send("You cannot delete an integration's role.")
     
     await role.delete(reason=f"Delete {role.name} - {ctx.author.id}")
     await ctx.send(f"Role `{role.name}` deleted.")
