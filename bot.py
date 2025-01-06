@@ -58,6 +58,21 @@ class Help(commands.HelpCommand):
 async def on_ready():
     print(f"Logged in as {bot.user} with {len(bot.commands)} commands.")
 
+@client.before_invoke
+async def before_invoke(ctx: commands.Context):
+    try:
+        await ctx.message.add_reaction("<a:loading:1325859336857059379>")
+    except discord.HTTPException:
+        pass
+
+@client.after_invoke
+async def after_invoke(ctx: commands.Context):
+    try:
+        await ctx.message.remove_reaction("<a:loading:1325859336857059379>", ctx.me)
+        # we specify that we want to remove the reaction from the bot
+    except discord.HTTPException:
+        pass
+
 @bot.group(name="category")
 async def category(ctx: commands.Context):
     """Utilities for categories. Because Discord is too lazy to add a clone feature."""
