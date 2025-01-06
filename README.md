@@ -15,6 +15,9 @@ Use `copier help` to view every category & their commands.
    - On Windows: `env/Scripts/activate.bat` (Command line) or `env/Scripts/Activate.ps1` (PowerShell)
    - On Linux & Mac: `source env/bin/activate`
 7. Install prerequisites with `pip install -r requirements.txt`.
-8. Run the bot with `python3 bot.py`.
+8. If you aren't using Windows, run `pip install uvloop`. This isn't included in the requirements txt because uvloop doesn't support Windows.
+   - if you're using Windows, you may ignore this. `asyncio.WindowsSelectorEventLoopPolicy` will be used.
+   - uvloop is a huge performance increased compared to other asyncio loop policies. It isn't required, but we use it in prod. 
+10. Run the bot with `python3 bot.py`.
 
 The code is under The Unlicense license, feel free to do anything you want with it.
