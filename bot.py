@@ -89,6 +89,33 @@ async def after_invoke(ctx: commands.Context):
     except discord.HTTPException:
         pass
 
+@bot.event
+async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(f"You need the following permission(s) to run this command: `{', '.join(error.missing_perms)}`")
+    elif isinstance(error, commands.BotMissingPermissions):
+        await ctx.send(f"I need the following permission(s) to run this command: `{', '.join(error.missing_perms)}`")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send_help(ctx.command)
+    elif isinstance(error, commands.CommandNotFound):
+        pass
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send_help(ctx.command)
+    elif isinstance(error, commands.NoPrivateMessage):
+        await ctx.send("Man, come on. You can't use this command in DMs.")
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.send("You don't have permission to run this command.")
+    elif isinstance(error, discord.Forbidden):
+        await ctx.send("I don't have permission perform this action. Some of the command may have already run though.")
+    else:
+        await ctx.send(f"An error occurred. `{error}`\nYou can report this error by opening an issue [here](https://github.com/rnxm/Copier/issues)")
+        raise error
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    print(f"An error occurred in the {event} event.\nargs: {args}\nkwargs: {kwargs}\n")
+    raise
+
 @bot.group(name="category", invoke_without_command=True)
 async def category(ctx: commands.Context):
     """Utilities for categories. Because Discord is too lazy to add a clone feature."""
@@ -96,6 +123,7 @@ async def category(ctx: commands.Context):
         await ctx.send_help("category")
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @category.command(name="clone", usage="category clone [roles] [new_name]", aliases=["copy"])
 async def category_clone(ctx: commands.Context, roles: commands.Greedy[discord.Role] = None, *, new_name: str = None):
     """Clones the current category and all its channels.
@@ -151,6 +179,7 @@ async def category_clone(ctx: commands.Context, roles: commands.Greedy[discord.R
     await ctx.message.delete()
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @category.command(name="delete")
 async def category_delete(ctx: commands.Context):
     """Deletes the category that the command is used in, and all its channels."""
@@ -163,6 +192,7 @@ async def category_delete(ctx: commands.Context):
     await category.delete(reason=f"Delete {category.name} - {ctx.author.id}")
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @category.command(name="nuke")
 async def category_nuke(ctx: commands.Context):
     """A shorthand for deleting and cloning a category."""
@@ -170,6 +200,7 @@ async def category_nuke(ctx: commands.Context):
     await ctx.invoke(category_delete)
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @category.command(name="clear")
 async def category_clear(ctx: commands.Context):
     """Deletes all channels in the category that the command is used in."""
@@ -189,6 +220,7 @@ async def channel(ctx: commands.Context):
         await ctx.send_help("channel")
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @channel.command(name="clone", usage="channel clone [roles] [new_name]", aliases=["copy"])
 async def channel_clone(ctx: commands.Context, roles: commands.Greedy[discord.Role] = None, *, new_name: str = None):
     """Clones the current channel.
@@ -219,6 +251,7 @@ async def channel_clone(ctx: commands.Context, roles: commands.Greedy[discord.Ro
     await ctx.send(f"Channel `{cloned.name}` created. {cloned.mention}")
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @channel.command(name="delete", usage="channel delete [channel]")
 async def channel_delete(ctx: commands.Context, channel: discord.TextChannel = None):
     """Deletes the current channel or the specified channel.
@@ -234,6 +267,7 @@ async def channel_delete(ctx: commands.Context, channel: discord.TextChannel = N
     await channel.delete(reason=f"Delete channel - {ctx.author.id}")
 
 @commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 @channel.command(name="nuke")
 async def channel_nuke(ctx: commands.Context):
     """A shorthand for cloning and deleting a channel."""
@@ -248,6 +282,7 @@ async def role(ctx: commands.Context):
         await ctx.send_help("role")
 
 @commands.has_permissions(manage_roles=True)
+@commands.bot_has_permissions(manage_roles=True)
 @role.command(name="clone", usage="role clone [role] [new_color] [new_name]", aliases=["copy"])
 async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str = None, *, new_name: str = None):
     """Clones a role.
@@ -267,7 +302,7 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
         new_color = None
     elif new_color and new_color.startswith("#"):
         try:
-            new_color = commands.ColorConverter().convert(ctx, new_color)
+            new_color = await commands.ColorConverter().convert(ctx, new_color)
         except commands.BadArgument:
             return await ctx.send("Invalid color. Must be a hex code and must start with a `#`.")
     new_role = await ctx.guild.create_role(
@@ -292,6 +327,7 @@ async def role_clone(ctx: commands.Context, role: discord.Role, new_color: str =
     await ctx.send(f"Role `{new_role.name}` created. {extras}\n{new_role.mention}")
 
 @commands.has_permissions(manage_roles=True)
+@commands.bot_has_permissions(manage_roles=True)
 @role.command(name="delete", usage="role delete [role]")
 async def role_delete(ctx: commands.Context, role: discord.Role):
     """Deletes a role.
@@ -308,11 +344,14 @@ async def role_delete(ctx: commands.Context, role: discord.Role):
         return await ctx.send("You cannot delete the premium subscriber role.")
     if role.managed or role.is_bot_managed():
         return await ctx.send("You cannot delete an integration's role.")
+    if role.position >= ctx.me.top_role.position:
+        return await ctx.send("I cannot delete a role that is above my top role.")
     
     await role.delete(reason=f"Delete {role.name} - {ctx.author.id}")
     await ctx.send(f"Role `{role.name}` deleted.")
 
 @commands.has_permissions(manage_roles=True)
+@commands.bot_has_permissions(manage_roles=True)
 @role.command(name="nuke", usage="role nuke [role]")
 async def role_nuke(ctx: commands.Context, role: discord.Role):
     """Nukes a role by cloning it and deleting the original. This should be used if you want to remove a role from everyone.
